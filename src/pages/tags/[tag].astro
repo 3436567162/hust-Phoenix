@@ -1,0 +1,76 @@
+---
+import { getCollection } from 'astro:content';
+import EmptyState from '../../components/EmptyState.astro';
+import PostCard from '../../components/PostCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { findPostsByTagSlug, findTagBySlug } from '../../lib/content';
+import { siteConfig } from '../../config/site';
+import { withBasePath } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  const { collectTags } = await import('../../lib/content');
+
+  return collectTags(posts).map((tag) => ({
+    params: { tag: tag.slug },
+    props: { tagSlug: tag.slug },
+  }));
+}
+
+const { tagSlug } = Astro.props;
+const posts = await getCollection('posts');
+const tag = findTagBySlug(posts, tagSlug);
+const matchedPosts = findPostsByTagSlug(posts, tagSlug);
+---
+
+<BaseLayout canonicalPath={`/tags/${tagSlug}`} title={tag ? `#${tag.name}` : '标签'}>
+  <section class="section-block">
+    {tag ? (
+      <>
+        <div class="section-heading">
+          <p class="eyebrow">Tag</p>
+          <h1>#{tag.name}</h1>
+          <p class="lede">
+            当前标签下共有 {tag.count} 篇已发布文章，适合交叉查看不同分类里的相近实践。
+          </p>
+        </div>
+
+        {matchedPosts.length > 0 ? (
+          <>
+            <p class="taxonomy-links">
+              <a href={withBasePath(siteConfig.basePath, '/tags')}>查看全部标签</a>
+              <a href={withBasePath(siteConfig.basePath, '/blog')}>回到博客总览</a>
+            </p>
+
+            <div class="card-grid">
+              {matchedPosts.map((post) => (
+                <PostCard post={post} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <EmptyState
+            title="这个标签暂时没有文章"
+            message="如果内容刚更新，下一次构建会按当前标签重新汇总结果。"
+          />
+        )}
+      </>
+    ) : (
+      <EmptyState title="未找到对应标签" message="请返回标签列表，或从文章页重新进入相关主题。" />
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .taxonomy-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem 1.2rem;
+  }
+
+  .taxonomy-links a {
+    color: var(--accent-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

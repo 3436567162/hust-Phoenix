@@ -1,0 +1,118 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatPostDate } from '../lib/date';
+import { siteConfig } from '../config/site';
+import { withBasePath } from '../lib/site';
+import TagChip from './TagChip.astro';
+
+interface ArchiveGroup {
+  year: string;
+  posts: CollectionEntry<'posts'>[];
+}
+
+interface Props {
+  groups: ArchiveGroup[];
+  categoryHrefByName: Map<string, string>;
+  tagHrefByName: Map<string, string>;
+}
+
+const { groups, categoryHrefByName, tagHrefByName } = Astro.props;
+---
+
+<div class="archive-list">
+  {groups.map((group) => (
+    <section class="archive-list__group">
+      <div class="archive-list__heading">
+        <p class="eyebrow">Year</p>
+        <h2>{group.year}</h2>
+      </div>
+
+      <div class="archive-list__entries">
+        {group.posts.map((post) => (
+          <article class="archive-entry surface-card">
+            <div class="archive-entry__meta">
+              <span>{formatPostDate(post.data.date)}</span>
+              <span class="meta-dot">
+                <a
+                  href={categoryHrefByName.get(post.data.category)}
+                >
+                  {post.data.category}
+                </a>
+              </span>
+            </div>
+
+            <div class="archive-entry__body">
+              <h3>
+                <a href={withBasePath(siteConfig.basePath, `/posts/${post.id}`)}>{post.data.title}</a>
+              </h3>
+              <p>{post.data.description}</p>
+            </div>
+
+            <div class="inline-tags">
+              {post.data.tags.map((tag) => (
+                <TagChip label={tag} href={tagHrefByName.get(tag)} />
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  ))}
+</div>
+
+<style>
+  .archive-list {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .archive-list__group {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .archive-list__heading {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .archive-list__entries {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .archive-entry {
+    display: grid;
+    gap: 1rem;
+    padding: 1.35rem;
+  }
+
+  .archive-entry__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem 1rem;
+    color: var(--text-faint);
+    font-size: 0.92rem;
+  }
+
+  .archive-entry__meta a {
+    text-decoration: none;
+  }
+
+  .archive-entry__body {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .archive-entry__body h3 {
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+  }
+
+  .archive-entry__body h3 a {
+    text-decoration: none;
+  }
+
+  .archive-entry__body p {
+    color: var(--text-subtle);
+  }
+</style>

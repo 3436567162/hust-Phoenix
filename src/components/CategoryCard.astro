@@ -1,0 +1,49 @@
+---
+import { siteConfig } from '../config/site';
+import { withBasePath } from '../lib/site';
+
+interface Props {
+  category: {
+    name: string;
+    slug: string;
+    count: number;
+  };
+}
+
+const { category } = Astro.props;
+const href = withBasePath(siteConfig.basePath, `/categories/${encodeURIComponent(category.slug)}`);
+---
+
+<article class="category-card surface-card">
+  <a class="category-card__link" href={href}>
+    <div class="stack-sm">
+      <p class="category-card__eyebrow">Category</p>
+      <h3>{category.name}</h3>
+      <p class="category-card__count">{category.count} 篇文章</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .category-card {
+    height: 100%;
+  }
+
+  .category-card__link {
+    display: block;
+    height: 100%;
+    padding: 1.25rem;
+    text-decoration: none;
+  }
+
+  .category-card__eyebrow {
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .category-card__count {
+    color: var(--text-subtle);
+  }
+</style>

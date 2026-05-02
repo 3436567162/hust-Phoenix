@@ -1,0 +1,22 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f5efe6"/>
+  <rect x="36" y="36" width="1128" height="558" rx="30" fill="#fffaf2" stroke="#dbcbb7" stroke-width="2"/>
+  <path d="M84 124C160 92 253 76 359 76C494 76 602 109 680 173C744 224 820 248 900 248C978 248 1053 228 1116 197V552H84V124Z" fill="url(#paint0_linear_10_2)" fill-opacity="0.92"/>
+  <path d="M84 498C176 470 267 456 358 456C452 456 554 470 662 498" stroke="#9a3412" stroke-opacity="0.14" stroke-width="2"/>
+  <path d="M84 532C170 505 261 491 359 491C463 491 566 505 678 532" stroke="#9a3412" stroke-opacity="0.1" stroke-width="2"/>
+  <rect x="102" y="100" width="136" height="136" rx="26" fill="#9a3412"/>
+  <text x="142" y="186" fill="#fffaf2" font-family="'Songti SC', 'Source Han Serif SC', serif" font-size="54" font-weight="700">HK</text>
+  <text x="278" y="174" fill="#9a3412" font-family="'Songti SC', 'Source Han Serif SC', serif" font-size="30" letter-spacing="5">3436567162 / HUST-PHOENIX</text>
+  <text x="278" y="286" fill="#1d1a17" font-family="'Songti SC', 'Source Han Serif SC', serif" font-size="84" font-weight="700">HK 技术博客</text>
+  <text x="280" y="354" fill="#5f564d" font-family="'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="30">前端 · 工程化 · 项目实践 · 中文技术写作</text>
+  <text x="280" y="430" fill="#5f564d" font-family="'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="24">内容优先的个人博客，部署到 GitHub Pages，面向长期写作与作品沉淀。</text>
+  <rect x="280" y="468" width="352" height="54" rx="27" fill="#9a3412" fill-opacity="0.09"/>
+  <text x="315" y="503" fill="#7c2d12" font-family="'PingFang SC', 'Microsoft YaHei', sans-serif" font-size="24">3436567162.github.io/hust-Phoenix</text>
+  <defs>
+    <linearGradient id="paint0_linear_10_2" x1="84" y1="76" x2="1116" y2="552" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f3e1c7"/>
+      <stop offset="0.48" stop-color="#ecd4ab"/>
+      <stop offset="1" stop-color="#e2bf88"/>
+    </linearGradient>
+  </defs>
+</svg>

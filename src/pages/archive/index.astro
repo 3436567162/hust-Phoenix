@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+import ArchiveList from '../../components/ArchiveList.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { collectCategories, collectTags, groupPostsByYear } from '../../lib/content';
+import { siteConfig } from '../../config/site';
+import { withBasePath } from '../../lib/site';
+
+const posts = await getCollection('posts');
+const groups = groupPostsByYear(posts);
+const categoryHrefByName = new Map(
+  collectCategories(posts).map((category) => [
+    category.name,
+    withBasePath(siteConfig.basePath, `/categories/${encodeURIComponent(category.slug)}`),
+  ]),
+);
+const tagHrefByName = new Map(
+  collectTags(posts).map((tag) => [
+    tag.name,
+    withBasePath(siteConfig.basePath, `/tags/${encodeURIComponent(tag.slug)}`),
+  ]),
+);
+---
+
+<BaseLayout canonicalPath="/archive" title="归档">
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Archive</p>
+      <h1>归档</h1>
+      <p class="lede">
+        按年份浏览全部已发布文章，适合回看某个阶段的写作密度、主题变化和技术关注点。
+      </p>
+    </div>
+
+    {groups.length > 0 ? (
+      <ArchiveList
+        groups={groups}
+        categoryHrefByName={categoryHrefByName}
+        tagHrefByName={tagHrefByName}
+      />
+    ) : (
+      <EmptyState title="还没有可归档的文章" message="等第一批文章发布后，这里会按年份自动整理。" />
+    )}
+  </section>
+</BaseLayout>

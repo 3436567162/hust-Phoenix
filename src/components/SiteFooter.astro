@@ -1,0 +1,98 @@
+---
+import { siteConfig } from '../config/site';
+import { withBasePath } from '../lib/site';
+
+const socialLinks = siteConfig.socialLinks.map((link) => ({
+  ...link,
+  href: link.href.startsWith('/') ? withBasePath(siteConfig.basePath, link.href) : link.href,
+}));
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__intro">
+      <p class="site-footer__label">持续写作，持续构建</p>
+      <p class="site-footer__title">{siteConfig.title}</p>
+      <p class="site-footer__description">{siteConfig.description}</p>
+    </div>
+
+    <div class="site-footer__links">
+      {socialLinks.map((link) => (
+        <a class="site-footer__link" href={link.href}>
+          {link.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding: 0 1.2rem 1.4rem;
+  }
+
+  .site-footer__inner {
+    width: min(100%, var(--container-wide));
+    margin: 0 auto;
+    display: grid;
+    gap: 1.25rem;
+    padding: 1.6rem 1.3rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 1.6rem;
+    background: rgba(255, 251, 246, 0.88);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .site-footer__intro {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .site-footer__label {
+    color: var(--accent-deep);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .site-footer__title {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .site-footer__description {
+    max-width: 34rem;
+    color: var(--text-subtle);
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .site-footer__link {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+  }
+
+  .site-footer__link:hover {
+    border-color: var(--accent-ring);
+    background: var(--accent-soft);
+  }
+
+  @media (min-width: 48rem) {
+    .site-footer__inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+
+    .site-footer__links {
+      justify-content: flex-end;
+    }
+  }
+</style>

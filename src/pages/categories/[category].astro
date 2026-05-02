@@ -1,0 +1,79 @@
+---
+import { getCollection } from 'astro:content';
+import EmptyState from '../../components/EmptyState.astro';
+import PostCard from '../../components/PostCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { findCategoryBySlug, findPostsByCategorySlug } from '../../lib/content';
+import { siteConfig } from '../../config/site';
+import { withBasePath } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  const { collectCategories } = await import('../../lib/content');
+
+  return collectCategories(posts).map((category) => ({
+    params: { category: category.slug },
+    props: { categorySlug: category.slug },
+  }));
+}
+
+const { categorySlug } = Astro.props;
+const posts = await getCollection('posts');
+const category = findCategoryBySlug(posts, categorySlug);
+const matchedPosts = findPostsByCategorySlug(posts, categorySlug);
+---
+
+<BaseLayout
+  canonicalPath={`/categories/${categorySlug}`}
+  title={category ? `${category.name} 分类` : '分类'}
+>
+  <section class="section-block">
+    {category ? (
+      <>
+        <div class="section-heading">
+          <p class="eyebrow">Category</p>
+          <h1>{category.name}</h1>
+          <p class="lede">
+            这个主题下共有 {category.count} 篇已发布文章，适合按同一类问题连续阅读和对照。
+          </p>
+        </div>
+
+        {matchedPosts.length > 0 ? (
+          <>
+            <p class="taxonomy-links">
+              <a href={withBasePath(siteConfig.basePath, '/categories')}>查看全部分类</a>
+              <a href={withBasePath(siteConfig.basePath, '/archive')}>切换到归档浏览</a>
+            </p>
+
+            <div class="card-grid">
+              {matchedPosts.map((post) => (
+                <PostCard post={post} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <EmptyState
+            title="这个分类暂时没有文章"
+            message="如果内容刚调整过，稍后重新构建后会自动恢复到最新状态。"
+          />
+        )}
+      </>
+    ) : (
+      <EmptyState title="未找到对应分类" message="请返回分类列表，或从归档页重新进入相关文章。" />
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .taxonomy-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem 1.2rem;
+  }
+
+  .taxonomy-links a {
+    color: var(--accent-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

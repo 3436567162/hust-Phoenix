@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout canonicalPath="/about" title="关于">
+  <section class="about-page surface-card">
+    <div class="section-heading">
+      <p class="eyebrow">About</p>
+      <h1>关于我</h1>
+      <p class="lede">
+        我是一名仍在持续成长中的学生开发者，正在把课堂训练、个人项目和真实问题排查，逐步沉淀成更稳定的前端工程判断。
+      </p>
+    </div>
+
+    <div class="about-page__content prose-flow">
+      <p>
+        这个博客不是为了堆积“会了什么”，而是为了记录我是怎样理解需求、拆解问题、验证方案，以及在一次次实现里修正自己的技术习惯。
+      </p>
+      <p>
+        我当前最关注的方向包括内容型站点、前端工程化、可维护的界面结构，以及面向长期迭代的技术写作。相比“快速做完”，我更在意方案为什么成立、哪些取舍值得保留、哪些问题应该在下一轮重构里解决。
+      </p>
+      <p>
+        这里的文章和项目会保持学生阶段应有的真实感: 有摸索、有复盘，也有还在形成中的方法论。我希望它们能持续反映我的技术成长轨迹，而不是一次性包装出来的结果页。
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-page {
+    display: grid;
+    gap: 1.5rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .about-page__content {
+    max-width: 48rem;
+  }
+</style>

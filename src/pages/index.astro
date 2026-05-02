@@ -1,0 +1,136 @@
+---
+import { getCollection } from 'astro:content';
+import CategoryCard from '../components/CategoryCard.astro';
+import HeroIntro from '../components/HeroIntro.astro';
+import PostCard from '../components/PostCard.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { collectCategories, sortPostsByDateDesc } from '../lib/content';
+import { withBasePath } from '../lib/site';
+import { siteConfig } from '../config/site';
+
+const allPosts = await getCollection('posts');
+const allProjects = await getCollection('projects');
+
+const latestPosts = sortPostsByDateDesc(allPosts).slice(0, 3);
+const categories = collectCategories(allPosts);
+const representativeProjects = [...allProjects]
+  .sort((left, right) => {
+    if (left.data.featured !== right.data.featured) {
+      return Number(right.data.featured) - Number(left.data.featured);
+    }
+
+    if (left.data.order !== right.data.order) {
+      return left.data.order - right.data.order;
+    }
+
+    return left.data.title.localeCompare(right.data.title, 'zh-CN');
+  })
+  .slice(0, 3);
+
+const blogHref = withBasePath(siteConfig.basePath, '/blog');
+const projectsHref = withBasePath(siteConfig.basePath, '/projects');
+const aboutHref = withBasePath(siteConfig.basePath, '/about');
+---
+
+<BaseLayout canonicalPath="/" title="首页">
+  <div class="stack-lg">
+    <HeroIntro />
+
+    <section class="section-block">
+      <div class="section-heading">
+        <p class="eyebrow">Latest Writing</p>
+        <h2>最新文章</h2>
+        <p class="lede">
+          优先展示最近发布的内容，聚焦前端实践、工程化判断和真实项目复盘。
+        </p>
+      </div>
+
+      <div class="card-grid">
+        {latestPosts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+
+      <p class="section-link">
+        <a href={blogHref}>查看全部文章</a>
+      </p>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <p class="eyebrow">Categories</p>
+        <h2>分类导航</h2>
+        <p class="lede">
+          目前的写作按学习总结、项目复盘和问题排查组织，方便快速定位你关心的主题。
+        </p>
+      </div>
+
+      <div class="card-grid two-up">
+        {categories.map((category) => (
+          <CategoryCard category={category} />
+        ))}
+      </div>
+    </section>
+
+    <section class="about-preview surface-card">
+      <div class="section-heading">
+        <p class="eyebrow">About</p>
+        <h2>关于这个站点背后的我</h2>
+        <p class="lede">
+          我目前还是一名持续积累中的学生开发者，正在把课程训练、个人项目和问题排查经验，慢慢整理成更稳定的前端工程判断。
+        </p>
+      </div>
+
+      <div class="about-preview__body">
+        <p>
+          这里的文章和项目更像成长记录，不是一次性包装的结果页。我希望它们能真实反映我怎样理解需求、修正实现和沉淀方法。
+        </p>
+        <p class="section-link">
+          <a href={aboutHref}>查看完整关于页</a>
+        </p>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <p class="eyebrow">Selected Projects</p>
+        <h2>代表项目</h2>
+        <p class="lede">
+          这些项目对应我当前最想持续打磨的方向：内容型产品、课程场景界面，以及偏工程化的前端实现。
+        </p>
+      </div>
+
+      <div class="card-grid">
+        {representativeProjects.map((project) => (
+          <ProjectCard project={project} />
+        ))}
+      </div>
+
+      <p class="section-link">
+        <a href={projectsHref}>进入项目页</a>
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-preview {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.4rem, 4vw, 2rem);
+  }
+
+  .about-preview__body {
+    max-width: 44rem;
+    display: grid;
+    gap: 1rem;
+    color: var(--text-subtle);
+  }
+
+  .section-link a {
+    color: var(--accent-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatPostDate } from '../lib/date';
+import { siteConfig } from '../config/site';
+import { withBasePath } from '../lib/site';
+import TagChip from './TagChip.astro';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+const { post } = Astro.props;
+const postHref = withBasePath(siteConfig.basePath, `/posts/${post.id}`);
+---
+
+<article class="post-card surface-card">
+  <div class="post-card__content">
+    <div class="meta-row">
+      <span>{formatPostDate(post.data.date)}</span>
+      <span class="meta-dot">{post.data.category}</span>
+      {post.data.featured && <span class="meta-dot">精选</span>}
+    </div>
+
+    <div class="stack-sm">
+      <h3 class="post-card__title">
+        <a href={postHref}>{post.data.title}</a>
+      </h3>
+      <p class="post-card__description">{post.data.description}</p>
+    </div>
+
+    <div class="inline-tags">
+      {post.data.tags.map((tag) => (
+        <TagChip label={tag} />
+      ))}
+    </div>
+  </div>
+</article>
+
+<style>
+  .post-card {
+    height: 100%;
+  }
+
+  .post-card__content {
+    display: grid;
+    gap: 1rem;
+    padding: 1.35rem;
+  }
+
+  .post-card__title {
+    font-size: 1.45rem;
+  }
+
+  .post-card__title a {
+    text-decoration: none;
+  }
+
+  .post-card__description {
+    color: var(--text-subtle);
+  }
+</style>
