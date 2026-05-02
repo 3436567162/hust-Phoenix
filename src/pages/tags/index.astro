@@ -1,0 +1,65 @@
+---
+import { getCollection } from 'astro:content';
+import EmptyState from '../../components/EmptyState.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { collectTags } from '../../lib/content';
+import { siteConfig } from '../../config/site';
+import { withBasePath } from '../../lib/site';
+
+const posts = await getCollection('posts');
+const tags = collectTags(posts);
+---
+
+<BaseLayout canonicalPath="/tags" title="标签">
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Tags</p>
+      <h1>标签</h1>
+      <p class="lede">
+        标签更适合横向发现工具、场景和经验线索，用来补齐单一分类看不到的关联。
+      </p>
+    </div>
+
+    {tags.length > 0 ? (
+      <div class="tag-grid">
+        {tags.map((tag) => (
+          <a
+            class="tag-link surface-card"
+            href={withBasePath(siteConfig.basePath, `/tags/${encodeURIComponent(tag.slug)}`)}
+          >
+            <span class="tag-link__label">#{tag.name}</span>
+            <span class="tag-link__count">{tag.count} 篇</span>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <EmptyState title="还没有可用标签" message="文章发布后，标签页会自动补齐相应的浏览入口。" />
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .tag-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+
+  .tag-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    text-decoration: none;
+  }
+
+  .tag-link__label {
+    font-weight: 600;
+  }
+
+  .tag-link__count {
+    color: var(--text-faint);
+    font-size: 0.92rem;
+  }
+</style>

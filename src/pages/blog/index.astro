@@ -1,0 +1,269 @@
+---
+import { getCollection } from 'astro:content';
+import EmptyState from '../../components/EmptyState.astro';
+import PostCard from '../../components/PostCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { collectCategories, collectTags, groupPostsByYear } from '../../lib/content';
+
+const allPosts = await getCollection('posts');
+const postsByYear = groupPostsByYear(allPosts);
+const categories = collectCategories(allPosts);
+const tags = collectTags(allPosts);
+const hasPosts = postsByYear.length > 0;
+const categoryFilterValueByName = new Map(
+  categories.map((category) => [category.name, encodeURIComponent(category.slug)]),
+);
+const tagFilterValueByName = new Map(tags.map((tag) => [tag.name, encodeURIComponent(tag.slug)]));
+---
+
+<BaseLayout canonicalPath="/blog" title="博客">
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Blog Index</p>
+      <h1>博客</h1>
+      <p class="lede">
+        这里收纳全部已发布文章，先用本页筛选缩小范围，再按年份查看归档。内容主要围绕前端学习、项目复盘、问题排查和持续写作中的工程化思考。
+      </p>
+    </div>
+
+    {hasPosts ? (
+      <>
+        <div class="blog-discovery surface-card">
+          <div class="blog-discovery__section">
+            <div class="blog-discovery__header">
+              <h2>按分类浏览</h2>
+              <p>不跳转页面，直接在当前列表里筛选已发布文章。</p>
+            </div>
+
+            <div class="filter-chip-row" data-filter-group="category">
+              <button class="filter-chip is-active" type="button" data-filter-kind="category" data-filter-value="">
+                全部分类
+              </button>
+              {categories.map((category) => (
+                <button
+                  class="filter-chip"
+                  type="button"
+                  data-filter-kind="category"
+                  data-filter-value={encodeURIComponent(category.slug)}
+                >
+                  {category.name}
+                  <span>{category.count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div class="blog-discovery__section">
+            <div class="blog-discovery__header">
+              <h2>按标签浏览</h2>
+              <p>标签用于发现同一类工具、场景和实现经验。</p>
+            </div>
+
+            <div class="filter-chip-row" data-filter-group="tag">
+              <button class="filter-chip is-active" type="button" data-filter-kind="tag" data-filter-value="">
+                全部标签
+              </button>
+              {tags.map((tag) => (
+                <button
+                  class="filter-chip"
+                  type="button"
+                  data-filter-kind="tag"
+                  data-filter-value={encodeURIComponent(tag.slug)}
+                >
+                  {tag.name}
+                  <span>{tag.count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="filtered-empty surface-card" data-empty-state hidden>
+          <p class="eyebrow">No Match</p>
+          <h2>当前筛选下没有文章</h2>
+          <p>可以切回全部分类或全部标签，继续浏览完整归档。</p>
+        </div>
+
+        <div class="year-groups">
+          {postsByYear.map((group) => (
+            <section class="year-group" data-year-group>
+              <div class="year-group__header">
+                <p class="eyebrow">Year</p>
+                <h2>{group.year}</h2>
+              </div>
+
+              <div class="card-grid">
+                {group.posts.map((post) => (
+                  <div
+                    data-post-item
+                    data-category={categoryFilterValueByName.get(post.data.category) ?? ''}
+                    data-tags={post.data.tags
+                      .map((tag) => tagFilterValueByName.get(tag) ?? '')
+                      .filter(Boolean)
+                      .join('|')}
+                  >
+                    <PostCard post={post} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </>
+    ) : (
+      <EmptyState title="还没有可展示的文章" message="已发布内容会在这里按时间顺序出现。" />
+    )}
+  </section>
+</BaseLayout>
+
+<script>
+  const state = { category: '', tag: '' };
+  const chipGroups = document.querySelectorAll('[data-filter-group]');
+  const postItems = document.querySelectorAll('[data-post-item]');
+  const yearGroups = document.querySelectorAll('[data-year-group]');
+  const emptyState = document.querySelector('[data-empty-state]');
+
+  const applyFilters = () => {
+    let visibleCount = 0;
+
+    postItems.forEach((item) => {
+      const category = item.getAttribute('data-category') ?? '';
+      const tags = (item.getAttribute('data-tags') ?? '').split('|').filter(Boolean);
+      const categoryMatch = !state.category || category === state.category;
+      const tagMatch = !state.tag || tags.includes(state.tag);
+      const visible = categoryMatch && tagMatch;
+
+      item.toggleAttribute('hidden', !visible);
+
+      if (visible) {
+        visibleCount += 1;
+      }
+    });
+
+    yearGroups.forEach((group) => {
+      const hasVisiblePosts = [...group.querySelectorAll('[data-post-item]')].some(
+        (item) => !item.hasAttribute('hidden'),
+      );
+      group.toggleAttribute('hidden', !hasVisiblePosts);
+    });
+
+    if (emptyState) {
+      emptyState.toggleAttribute('hidden', visibleCount > 0);
+    }
+  };
+
+  chipGroups.forEach((group) => {
+    group.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target.closest('button[data-filter-kind]') : null;
+
+      if (!(target instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const kind = target.dataset.filterKind;
+      const value = target.dataset.filterValue ?? '';
+
+      if (kind !== 'category' && kind !== 'tag') {
+        return;
+      }
+
+      state[kind] = value;
+
+      group.querySelectorAll('button[data-filter-kind]').forEach((chip) => {
+        chip.classList.toggle('is-active', chip === target);
+      });
+
+      applyFilters();
+    });
+  });
+
+  applyFilters();
+</script>
+
+<style>
+  .blog-discovery {
+    display: grid;
+    gap: 1.4rem;
+    padding: 1.4rem;
+  }
+
+  .blog-discovery__section {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .blog-discovery__header {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .blog-discovery__header h2 {
+    font-size: 1.2rem;
+  }
+
+  .blog-discovery__header p {
+    color: var(--text-subtle);
+  }
+
+  .filter-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.45rem;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 251, 245, 0.88);
+    color: var(--text-subtle);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .filter-chip span {
+    color: var(--text-faint);
+    font-size: 0.86rem;
+  }
+
+  .filter-chip.is-active {
+    border-color: transparent;
+    background: var(--accent);
+    color: #fff8f2;
+    box-shadow: 0 10px 22px rgba(124, 45, 18, 0.16);
+  }
+
+  .filter-chip.is-active span {
+    color: rgba(255, 248, 242, 0.82);
+  }
+
+  .filtered-empty {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1.4rem;
+    text-align: center;
+  }
+
+  .year-groups {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .year-group {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .year-group__header {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .year-group__header h2 {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+  }
+</style>

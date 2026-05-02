@@ -2,6 +2,11 @@ import { describe, expect, test } from 'vitest';
 import {
   collectCategories,
   collectTags,
+  findAdjacentPosts,
+  findCategoryBySlug,
+  findPostsByCategorySlug,
+  findPostsByTagSlug,
+  findTagBySlug,
   getFeaturedPosts,
   groupPostsByYear,
   sortPostsByDateDesc,
@@ -49,7 +54,7 @@ const draftPost = {
   data: {
     title: '性能优化草稿',
     date: new Date('2026-05-02'),
-    category: '性能 优化!',
+    category: '技术随笔',
     tags: ['Node.js', '学习总结'],
     featured: true,
     draft: true,
@@ -122,7 +127,14 @@ describe('content helpers', () => {
   });
 
   test('normalizes mixed taxonomy labels into route-safe slugs', () => {
-    expect(collectTags([{ ...publishedPosts[0], data: { ...publishedPosts[0].data, tags: ['Node.js', '性能 优化!', '学习总结'] } }])).toEqual(
+    expect(
+      collectTags([
+        {
+          ...publishedPosts[0],
+          data: { ...publishedPosts[0].data, tags: ['Node.js', '性能 优化!', '学习总结'] },
+        },
+      ]),
+    ).toEqual(
       expect.arrayContaining([
         { name: 'Node.js', count: 1, slug: 'node-js' },
         { name: '性能 优化!', count: 1, slug: '性能-优化' },
@@ -130,10 +142,155 @@ describe('content helpers', () => {
       ]),
     );
   });
+
+  test('findPostsByCategorySlug returns published posts for a normalized category slug', () => {
+    const matchedPosts = findPostsByCategorySlug(posts, '问题排查');
+
+    expect(matchedPosts.map((post) => post.slug)).toEqual([
+      'troubleshooting-vite-build-on-windows',
+    ]);
+  });
+
+  test('findPostsByTagSlug returns published posts for a normalized tag slug in date order', () => {
+    const matchedPosts = findPostsByTagSlug(
+      [
+        ...posts,
+        {
+          slug: 'shipping-small-improvements',
+          data: {
+            title: '持续交付小改进的节奏',
+            date: new Date('2026-02-18'),
+            category: '项目复盘',
+            tags: ['React', '复盘'],
+            featured: false,
+            draft: false,
+          },
+        },
+      ],
+      'react',
+    );
+
+    expect(matchedPosts.map((post) => post.slug)).toEqual([
+      'shipping-small-improvements',
+      'from-course-project-to-frontend-engineering',
+    ]);
+  });
+
+  test('findCategoryBySlug and findTagBySlug map route params back to display labels safely', () => {
+    expect(findCategoryBySlug(posts, '项目复盘')).toEqual({
+      name: '项目复盘',
+      count: 1,
+      slug: '项目复盘',
+    });
+    expect(findTagBySlug(posts, 'node-js')).toBeUndefined();
+    expect(
+      findTagBySlug(
+        [{ ...publishedPosts[0], data: { ...publishedPosts[0].data, tags: ['Node.js'] } }],
+        'node-js',
+      ),
+    ).toEqual({
+      name: 'Node.js',
+      count: 1,
+      slug: 'node-js',
+    });
+  });
+
+  test('findAdjacentPosts returns the previous and next published posts in date order', () => {
+    const adjacent = findAdjacentPosts(posts, 'build-my-first-astro-blog');
+
+    expect(adjacent).toEqual({
+      previous: publishedPosts[2],
+      next: publishedPosts[1],
+    });
+  });
 });
 
 describe('date helpers', () => {
   test('formatPostDate formats a Chinese calendar date', () => {
     expect(formatPostDate(new Date('2026-05-01'))).toBe('2026年5月1日');
+  });
+});
+describe('taxonomy slug collisions', () => {
+  const collisionPosts = [
+    {
+      slug: 'node-js-runtime',
+      data: {
+        title: 'Node.js runtime',
+        date: new Date('2026-05-01'),
+        category: 'Backend',
+        tags: ['Node.js', 'SSR'],
+        draft: false,
+      },
+    },
+    {
+      slug: 'node-js-tooling',
+      data: {
+        title: 'Node JS tooling',
+        date: new Date('2026-04-20'),
+        category: 'Backend',
+        tags: ['Node JS'],
+        draft: false,
+      },
+    },
+    {
+      slug: 'node-js-history',
+      data: {
+        title: 'Node-JS history',
+        date: new Date('2026-04-10'),
+        category: 'Backend',
+        tags: ['Node-JS', 'SSR'],
+        draft: false,
+      },
+    },
+    {
+      slug: 'duplicate-node-js',
+      data: {
+        title: 'Another Node.js post',
+        date: new Date('2026-03-15'),
+        category: 'Backend',
+        tags: ['Node.js'],
+        draft: false,
+      },
+    },
+  ] as const;
+
+  test('collectTags assigns unique deterministic slugs to colliding normalized labels', () => {
+    expect(collectTags(collisionPosts)).toEqual(
+      expect.arrayContaining([
+        { name: 'Node JS', count: 1, slug: 'node-js' },
+        { name: 'Node-JS', count: 1, slug: 'node-js-2' },
+        { name: 'Node.js', count: 2, slug: 'node-js-3' },
+        { name: 'SSR', count: 2, slug: 'ssr' },
+      ]),
+    );
+  });
+
+  test('taxonomy lookup helpers resolve distinct colliding tag slugs back to the correct posts', () => {
+    expect(findTagBySlug(collisionPosts, 'node-js')).toEqual({
+      name: 'Node JS',
+      count: 1,
+      slug: 'node-js',
+    });
+    expect(findTagBySlug(collisionPosts, 'node-js-2')).toEqual({
+      name: 'Node-JS',
+      count: 1,
+      slug: 'node-js-2',
+    });
+    expect(findTagBySlug(collisionPosts, 'node-js-3')).toEqual({
+      name: 'Node.js',
+      count: 2,
+      slug: 'node-js-3',
+    });
+
+    expect(findPostsByTagSlug(collisionPosts, 'node-js').map((post) => post.slug)).toEqual([
+      'node-js-tooling',
+    ]);
+    expect(findPostsByTagSlug(collisionPosts, 'node-js-2').map((post) => post.slug)).toEqual([
+      'node-js-history',
+    ]);
+    expect(findPostsByTagSlug(collisionPosts, 'node-js-3').map((post) => post.slug)).toEqual([
+      'node-js-runtime',
+      'duplicate-node-js',
+    ]);
   });
 });

@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import CategoryCard from '../../components/CategoryCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+import { collectCategories } from '../../lib/content';
+
+const posts = await getCollection('posts');
+const categories = collectCategories(posts);
+---
+
+<BaseLayout canonicalPath="/categories" title="分类">
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Categories</p>
+      <h1>分类</h1>
+      <p class="lede">
+        从写作主题进入内容：学习总结偏方法沉淀，项目复盘偏过程判断，问题排查偏定位思路。
+      </p>
+    </div>
+
+    {categories.length > 0 ? (
+      <div class="card-grid two-up">
+        {categories.map((category) => (
+          <CategoryCard category={category} />
+        ))}
+      </div>
+    ) : (
+      <EmptyState title="还没有可用分类" message="文章发布后，这里会自动汇总可浏览的主题入口。" />
+    )}
+  </section>
+</BaseLayout>

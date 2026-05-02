@@ -1,5 +1,12 @@
-type PostLike = {
-  slug: string;
+type PostIdentity =
+  | {
+      id: string;
+    }
+  | {
+      slug: string;
+    };
+
+type PostLike = PostIdentity & {
   data: {
     title: string;
     date: Date;
@@ -50,15 +57,27 @@ function collectCountItems(values: Iterable<string>, useNameAsSlug = false) {
     counts.set(value, (counts.get(value) ?? 0) + 1);
   }
 
-  return [...counts.entries()]
-    .map(
-      ([name, count]): CountItem => ({
-        name,
-        count,
-        slug: useNameAsSlug ? name : slugify(name),
-      }),
-    )
+  const items = [...counts.entries()]
+    .map(([name, count]) => ({
+      name,
+      count,
+      slug: useNameAsSlug ? name : slugify(name),
+    }))
     .sort((left, right) => compareNames(left.name, right.name));
+
+  const slugCounts = new Map<string, number>();
+
+  return items.map(
+    (item): CountItem => {
+      const collisionCount = (slugCounts.get(item.slug) ?? 0) + 1;
+      slugCounts.set(item.slug, collisionCount);
+
+      return {
+        ...item,
+        slug: collisionCount === 1 ? item.slug : `${item.slug}-${collisionCount}`,
+      };
+    },
+  );
 }
 
 export function sortPostsByDateDesc<T extends PostLike>(posts: readonly T[]) {
@@ -79,6 +98,38 @@ export function collectTags<T extends PostLike>(posts: readonly T[]) {
   return collectCountItems(posts.filter(isPublishedPost).flatMap((post) => post.data.tags));
 }
 
+export function findCategoryBySlug<T extends PostLike>(posts: readonly T[], categorySlug: string) {
+  return collectCategories(posts).find((category) => category.slug === categorySlug);
+}
+
+export function findTagBySlug<T extends PostLike>(posts: readonly T[], tagSlug: string) {
+  return collectTags(posts).find((tag) => tag.slug === tagSlug);
+}
+
+export function findPostsByCategorySlug<T extends PostLike>(posts: readonly T[], categorySlug: string) {
+  const category = findCategoryBySlug(posts, categorySlug);
+
+  if (!category) {
+    return [];
+  }
+
+  return sortPostsByDateDesc(
+    posts.filter((post) => isPublishedPost(post) && post.data.category === category.name),
+  );
+}
+
+export function findPostsByTagSlug<T extends PostLike>(posts: readonly T[], tagSlug: string) {
+  const tag = findTagBySlug(posts, tagSlug);
+
+  if (!tag) {
+    return [];
+  }
+
+  return sortPostsByDateDesc(
+    posts.filter((post) => isPublishedPost(post) && post.data.tags.includes(tag.name)),
+  );
+}
+
 export function groupPostsByYear<T extends PostLike>(posts: readonly T[]) {
   const groups = new Map<string, T[]>();
 
@@ -93,4 +144,23 @@ export function groupPostsByYear<T extends PostLike>(posts: readonly T[]) {
     year,
     posts: groupedPosts,
   }));
+}
+
+export function findAdjacentPosts<T extends PostLike>(posts: readonly T[], slugOrId: string) {
+  const orderedPosts = sortPostsByDateDesc(posts);
+  const currentIndex = orderedPosts.findIndex(
+    (post) => ('slug' in post ? post.slug : post.id) === slugOrId,
+  );
+
+  if (currentIndex === -1) {
+    return {
+      previous: undefined,
+      next: undefined,
+    };
+  }
+
+  return {
+    previous: orderedPosts[currentIndex - 1],
+    next: orderedPosts[currentIndex + 1],
+  };
 }

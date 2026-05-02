@@ -1,0 +1,144 @@
+---
+import { getCollection, render } from 'astro:content';
+import TagChip from '../../components/TagChip.astro';
+import PostLayout from '../../layouts/PostLayout.astro';
+import { collectCategories, collectTags, findAdjacentPosts } from '../../lib/content';
+import { siteConfig } from '../../config/site';
+import { withBasePath } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+
+  return posts
+    .filter((post) => !post.data.draft)
+    .map((post) => ({
+      params: { slug: post.id },
+      props: { post },
+    }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const allPosts = await getCollection('posts');
+const adjacent = findAdjacentPosts(allPosts, post.id);
+const categories = collectCategories(allPosts);
+const tags = collectTags(allPosts);
+const category = categories.find((item) => item.name === post.data.category);
+const tagHrefByName = new Map(
+  tags.map((tag) => [tag.name, withBasePath(siteConfig.basePath, `/tags/${encodeURIComponent(tag.slug)}`)]),
+);
+const categoryHref = category
+  ? withBasePath(siteConfig.basePath, `/categories/${encodeURIComponent(category.slug)}`)
+  : undefined;
+---
+
+<PostLayout post={post} headings={headings}>
+  <Content />
+
+  <Fragment slot="after-content">
+    <section class="post-extra">
+      <div class="post-extra__section surface-card">
+        <div class="post-extra__header">
+          <p class="eyebrow">Taxonomy</p>
+          <h2>继续按主题浏览</h2>
+        </div>
+
+        <div class="stack-sm">
+          <p class="post-extra__category">
+            分类：
+            {categoryHref ? <a href={categoryHref}>{post.data.category}</a> : post.data.category}
+          </p>
+          <div class="inline-tags">
+            {post.data.tags.map((tag) => (
+              <TagChip label={tag} href={tagHrefByName.get(tag)} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <nav class="post-neighbors" aria-label="文章前后导航">
+        {adjacent.previous ? (
+          <a
+            class="post-neighbors__item surface-card"
+            href={withBasePath(siteConfig.basePath, `/posts/${adjacent.previous.id}`)}
+          >
+            <p class="eyebrow">上一篇</p>
+            <h3>{adjacent.previous.data.title}</h3>
+          </a>
+        ) : (
+          <div class="post-neighbors__item surface-card is-empty">
+            <p class="eyebrow">上一篇</p>
+            <p>已经是最新发布的文章。</p>
+          </div>
+        )}
+
+        {adjacent.next ? (
+          <a
+            class="post-neighbors__item surface-card"
+            href={withBasePath(siteConfig.basePath, `/posts/${adjacent.next.id}`)}
+          >
+            <p class="eyebrow">下一篇</p>
+            <h3>{adjacent.next.data.title}</h3>
+          </a>
+        ) : (
+          <div class="post-neighbors__item surface-card is-empty">
+            <p class="eyebrow">下一篇</p>
+            <p>已经浏览到目前最早的文章。</p>
+          </div>
+        )}
+      </nav>
+    </section>
+  </Fragment>
+</PostLayout>
+
+<style>
+  .post-extra {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .post-extra__section,
+  .post-neighbors__item {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1.2rem;
+  }
+
+  .post-extra__header {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .post-extra__category {
+    color: var(--text-subtle);
+  }
+
+  .post-extra__category a {
+    color: var(--accent-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .post-neighbors {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .post-neighbors__item {
+    text-decoration: none;
+  }
+
+  .post-neighbors__item.is-empty {
+    color: var(--text-subtle);
+  }
+
+  .post-neighbors__item h3 {
+    font-size: 1.15rem;
+  }
+
+  @media (min-width: 48rem) {
+    .post-neighbors {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

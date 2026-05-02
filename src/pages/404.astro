@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBasePath } from '../lib/site';
+import { siteConfig } from '../config/site';
+
+const homeHref = withBasePath(siteConfig.basePath, '/');
+const blogHref = withBasePath(siteConfig.basePath, '/blog');
+---
+
+<BaseLayout canonicalPath="/404" title="页面未找到">
+  <section class="not-found surface-card">
+    <p class="eyebrow">404</p>
+    <h1>这页没有被收录进站点。</h1>
+    <p class="lede">
+      你访问的地址可能已经调整，或者这部分内容还没有公开。可以先回到首页继续浏览，或者直接进入文章列表。
+    </p>
+
+    <div class="not-found__actions">
+      <a class="not-found__button not-found__button--primary" href={homeHref}>返回首页</a>
+      <a class="not-found__button" href={blogHref}>查看博客</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+    padding: clamp(1.75rem, 5vw, 3rem);
+  }
+
+  .not-found__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    padding-top: 0.4rem;
+  }
+
+  .not-found__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.9rem;
+    padding: 0.75rem 1.15rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 252, 248, 0.78);
+    text-decoration: none;
+  }
+
+  .not-found__button--primary {
+    border-color: transparent;
+    background: var(--accent);
+    box-shadow: 0 12px 24px rgba(124, 45, 18, 0.18);
+    color: #fff8f2;
+  }
+
+  .not-found__button--primary:hover {
+    background: var(--accent-deep);
+    color: #fff8f2;
+  }
+</style>

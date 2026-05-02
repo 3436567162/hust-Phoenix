@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import EmptyState from '../components/EmptyState.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const projects = [...(await getCollection('projects'))].sort((left, right) => {
+  if (left.data.featured !== right.data.featured) {
+    return Number(right.data.featured) - Number(left.data.featured);
+  }
+
+  if (left.data.order !== right.data.order) {
+    return left.data.order - right.data.order;
+  }
+
+  return left.data.title.localeCompare(right.data.title, 'zh-CN');
+});
+---
+
+<BaseLayout canonicalPath="/projects" title="项目">
+  <section class="section-block">
+    <div class="section-heading">
+      <p class="eyebrow">Projects</p>
+      <h1>项目</h1>
+      <p class="lede">
+        这里展示当前保留的项目样本。它们不是简单的作业清单，而是我用来验证界面表达、工程组织和长期维护能力的阶段性作品。
+      </p>
+    </div>
+
+    {projects.length > 0 ? (
+      <div class="card-grid">
+        {projects.map((project) => (
+          <ProjectCard project={project} />
+        ))}
+      </div>
+    ) : (
+      <EmptyState title="暂时没有项目条目" message="后续保留的项目会统一整理在这里。" />
+    )}
+  </section>
+</BaseLayout>
