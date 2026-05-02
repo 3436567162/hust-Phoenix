@@ -1,0 +1,111 @@
+---
+import { siteConfig } from '../config/site';
+import { withBasePath } from '../lib/site';
+
+const navItems = siteConfig.nav.map((item) => ({
+  ...item,
+  href: withBasePath(siteConfig.basePath, item.href),
+}));
+---
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href={withBasePath(siteConfig.basePath, '/')}>
+      <span class="site-header__mark">HK</span>
+      <span class="site-header__title">{siteConfig.title}</span>
+    </a>
+
+    <nav aria-label="主导航" class="site-header__nav">
+      {navItems.map((item) => (
+        <a class="site-header__link" href={item.href}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 1rem 1.2rem 0;
+  }
+
+  .site-header__inner {
+    width: min(100%, var(--container-wide));
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 1.4rem;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 1.4rem;
+    background: rgba(255, 250, 244, 0.84);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+  }
+
+  .site-header__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    text-decoration: none;
+  }
+
+  .site-header__mark {
+    display: inline-grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid rgba(154, 52, 18, 0.2);
+    border-radius: 0.9rem;
+    background: linear-gradient(135deg, rgba(154, 52, 18, 0.14), rgba(154, 52, 18, 0.04));
+    color: var(--accent-deep);
+    font-family: var(--font-serif);
+    font-size: 0.96rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .site-header__title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .site-header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .site-header__link {
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    color: var(--text-subtle);
+    font-size: 0.95rem;
+    text-decoration: none;
+  }
+
+  .site-header__link:hover {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+  }
+
+  @media (max-width: 47.99rem) {
+    .site-header__inner {
+      padding: 0.95rem 1rem;
+    }
+
+    .site-header__nav {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+</style>

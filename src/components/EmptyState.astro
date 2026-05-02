@@ -1,0 +1,34 @@
+---
+interface Props {
+  title: string;
+  message: string;
+}
+
+const { title, message } = Astro.props;
+---
+
+<section class="empty-state surface-card" aria-live="polite">
+  <p class="empty-state__eyebrow">暂无内容</p>
+  <h2>{title}</h2>
+  <p>{message}</p>
+</section>
+
+<style>
+  .empty-state {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .empty-state__eyebrow {
+    color: var(--text-faint);
+    font-size: 0.84rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .empty-state p:last-child {
+    color: var(--text-subtle);
+  }
+</style>

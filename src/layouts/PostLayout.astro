@@ -1,0 +1,145 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import TagChip from '../components/TagChip.astro';
+import { formatPostDate } from '../lib/date';
+
+type Heading = {
+  depth: number;
+  slug: string;
+  text: string;
+};
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+  headings?: Heading[];
+}
+
+const { post, headings = [] } = Astro.props;
+const articlePath = `/posts/${post.id}`;
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  canonicalPath={articlePath}
+>
+  <article class="post-layout">
+    <header class="post-layout__hero surface-card">
+      <div class="stack-md">
+        <p class="eyebrow">{post.data.category}</p>
+        <h1>{post.data.title}</h1>
+        <p class="post-layout__summary">{post.data.description}</p>
+      </div>
+
+      <div class="stack-sm">
+        <div class="meta-row">
+          <span>发布于 {formatPostDate(post.data.date)}</span>
+          {post.data.updatedDate && (
+            <span class="meta-dot">更新于 {formatPostDate(post.data.updatedDate)}</span>
+          )}
+        </div>
+
+        <div class="inline-tags">
+          {post.data.tags.map((tag) => (
+            <TagChip label={tag} />
+          ))}
+        </div>
+      </div>
+    </header>
+
+    <div class="post-layout__body">
+      <div class="post-layout__content surface-card">
+        <div class="prose-flow">
+          <slot />
+        </div>
+
+        <slot name="after-content" />
+      </div>
+
+      <aside class="post-layout__toc surface-card">
+        <div class="stack-sm">
+          <h2 class="post-layout__toc-title">目录</h2>
+          {headings.length > 0 ? (
+            <ol class="post-layout__toc-list">
+              {headings
+                .filter((heading) => heading.depth <= 3)
+                .map((heading) => (
+                  <li class:list={{ 'is-nested': heading.depth > 2 }}>
+                    <a href={`#${heading.slug}`}>{heading.text}</a>
+                  </li>
+                ))}
+            </ol>
+          ) : (
+            <p class="post-layout__toc-empty">这篇文章暂时没有可用目录。</p>
+          )}
+        </div>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-layout {
+    display: grid;
+    gap: 1.4rem;
+  }
+
+  .post-layout__hero,
+  .post-layout__content,
+  .post-layout__toc {
+    padding: clamp(1.35rem, 3vw, 2rem);
+  }
+
+  .post-layout__summary,
+  .post-layout__toc-empty {
+    color: var(--text-subtle);
+  }
+
+  .post-layout__body {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .post-layout__content {
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  .post-layout__toc {
+    position: relative;
+  }
+
+  .post-layout__toc-title {
+    font-size: 1.2rem;
+  }
+
+  .post-layout__toc-list {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+    padding-left: 1rem;
+    color: var(--text-subtle);
+  }
+
+  .post-layout__toc-list li.is-nested {
+    color: var(--text-faint);
+  }
+
+  .post-layout__toc-list a {
+    text-decoration: none;
+  }
+
+  @media (min-width: 70rem) {
+    .post-layout__body {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+    }
+
+    .post-layout__toc {
+      position: sticky;
+      top: 6.6rem;
+    }
+  }
+</style>

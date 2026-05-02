@@ -1,0 +1,89 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+type ProjectLink = {
+  label: string;
+  href: string;
+};
+
+const links = [
+  project.data.repoUrl ? { label: '仓库', href: project.data.repoUrl } : undefined,
+  project.data.demoUrl ? { label: '演示', href: project.data.demoUrl } : undefined,
+].filter((link): link is ProjectLink => Boolean(link));
+---
+
+<article class="project-card surface-card">
+  <div class="project-card__content">
+    <div class="meta-row">
+      <span>项目</span>
+      {project.data.featured && <span class="meta-dot">代表作</span>}
+    </div>
+
+    <div class="stack-sm">
+      <h3 class="project-card__title">{project.data.title}</h3>
+      <p class="project-card__summary">{project.data.summary}</p>
+    </div>
+
+    <div class="inline-tags">
+      {project.data.techStack.map((item) => (
+        <span class="project-card__stack-chip">{item}</span>
+      ))}
+    </div>
+
+    {links.length > 0 && (
+      <div class="project-card__links">
+        {links.map((link) => (
+          <a href={link.href}>{link.label}</a>
+        ))}
+      </div>
+    )}
+  </div>
+</article>
+
+<style>
+  .project-card {
+    height: 100%;
+  }
+
+  .project-card__content {
+    display: grid;
+    gap: 1rem;
+    padding: 1.35rem;
+  }
+
+  .project-card__title {
+    font-size: 1.35rem;
+  }
+
+  .project-card__summary {
+    color: var(--text-subtle);
+  }
+
+  .project-card__stack-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--radius-pill);
+    background: rgba(29, 26, 23, 0.06);
+    color: var(--text-subtle);
+    font-size: 0.85rem;
+  }
+
+  .project-card__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .project-card__links a {
+    color: var(--accent-deep);
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

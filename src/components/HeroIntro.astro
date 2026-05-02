@@ -1,0 +1,141 @@
+---
+import { siteConfig } from '../config/site';
+import { withBasePath } from '../lib/site';
+
+const primaryLink = withBasePath(siteConfig.basePath, '/blog');
+const secondaryLink = withBasePath(siteConfig.basePath, '/projects');
+---
+
+<section class="hero-intro surface-card">
+  <div class="hero-intro__copy">
+    <p class="eyebrow">Editorial Technical Notes</p>
+    <h1>在稳定写作里打磨工程判断，在项目实践中验证技术选择。</h1>
+    <p class="hero-intro__lede">
+      这里记录我在前端、工程化与项目复盘中的真实经验，强调可复用的方法、清晰的上下文，以及适合中文阅读的内容组织。
+    </p>
+
+    <div class="hero-intro__actions">
+      <a class="hero-intro__button hero-intro__button--primary" href={primaryLink}>开始阅读</a>
+      <a class="hero-intro__button" href={secondaryLink}>查看项目</a>
+    </div>
+  </div>
+
+  <div class="hero-intro__panel">
+    <p class="hero-intro__panel-label">当前关注</p>
+    <ul class="hero-intro__topics">
+      <li>Astro 与内容站点架构</li>
+      <li>前端工程化与构建诊断</li>
+      <li>面向长期维护的 UI 设计系统</li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .hero-intro {
+    display: grid;
+    gap: 1.5rem;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hero-intro::after {
+    content: "";
+    position: absolute;
+    inset: auto -3rem -4.5rem auto;
+    width: 16rem;
+    height: 16rem;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(154, 52, 18, 0.16), transparent 68%);
+    pointer-events: none;
+  }
+
+  .hero-intro__copy {
+    display: grid;
+    gap: 1rem;
+    max-width: 42rem;
+  }
+
+  .hero-intro__lede {
+    color: var(--text-subtle);
+    font-size: 1.06rem;
+  }
+
+  .hero-intro__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    padding-top: 0.25rem;
+  }
+
+  .hero-intro__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.9rem;
+    padding: 0.75rem 1.15rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: rgba(255, 252, 248, 0.78);
+    text-decoration: none;
+  }
+
+  .hero-intro__button--primary {
+    border-color: transparent;
+    background: var(--accent);
+    color: #fff8f2;
+    box-shadow: 0 12px 24px rgba(124, 45, 18, 0.18);
+  }
+
+  .hero-intro__button--primary:hover {
+    color: #fff8f2;
+    background: var(--accent-deep);
+  }
+
+  .hero-intro__panel {
+    display: grid;
+    gap: 0.8rem;
+    align-content: start;
+    padding: 1.2rem;
+    border: 1px solid rgba(154, 52, 18, 0.14);
+    border-radius: 1.3rem;
+    background: rgba(255, 247, 239, 0.78);
+  }
+
+  .hero-intro__panel-label {
+    color: var(--text-faint);
+    font-size: 0.88rem;
+  }
+
+  .hero-intro__topics {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .hero-intro__topics li {
+    position: relative;
+    padding-left: 1rem;
+  }
+
+  .hero-intro__topics li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.8rem;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--accent);
+    transform: translateY(-50%);
+  }
+
+  @media (min-width: 60rem) {
+    .hero-intro {
+      grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 0.8fr);
+      align-items: end;
+    }
+  }
+</style>
